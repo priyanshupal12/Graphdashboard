@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import Register from './components/Register';
 import Login from './components/Login';
 import MyLayout from './components/MyLayout';
+import ProtectedTest from './components/ProtectedTest';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);
@@ -29,9 +30,15 @@ export default function App() {
     <Router>
       <Routes>
         <Route
+          path="/"
+          element={
+            <Navigate to="/login" />
+          }
+        />
+        <Route
           path="/register"
           element={
-            <Register register={handleLogin}/> 
+            <Register register={handleLogin} />
           }
         />
         <Route
@@ -51,9 +58,9 @@ export default function App() {
           }
         />
         <Route
-          path="*"
+          path="/profile"
           element={
-            currentUser ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
+            currentUser ? <ProtectedTest to="/protected" /> : <Navigate to="/login" />
           }
         />
       </Routes>

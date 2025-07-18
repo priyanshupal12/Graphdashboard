@@ -4,6 +4,7 @@ import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import userrouter from "./routes/auth.js";
 import tokenrouter from "./routes/tokens.js";
+import profilerouter from "./routes/profile.js"
 
 dotenv.config({ path: "./.env" });
 
@@ -45,6 +46,7 @@ app.use(cookieParser());
 app.use('/register', userrouter);
 app.use('/login', userrouter);
 app.use('/tokens', tokenrouter);
+app.use('/profile', profilerouter);
 
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);

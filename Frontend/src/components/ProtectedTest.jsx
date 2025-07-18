@@ -10,37 +10,49 @@ export default function ProtectedTest() {
 
   const callProtected = async () => {
     setError('');
-    try {
-      const token = JSON.parse(localStorage.getItem('accessToken'));
-      if (!token) {
-        setError('No access token. Please login first.');
-        return;
-      }
+    const token = JSON.parse(localStorage.getItem('token'));
+    console.log('[DEBUG] Current access token from localStorage:', token);
 
-      const res = await axios.get('/protected', {
+    if (!token) {
+      console.log('[DEBUG] No access token found.');
+      setError('No access token. Please login first.');
+      return;
+    }
+
+    try {
+      console.log('[DEBUG] Sending protected request with token...');
+      const res = await axios.get('/profile/person', {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
 
+      console.log('[DEBUG] Protected request successful. Response:', res.data);
       setProtectedData(res.data.message || JSON.stringify(res.data));
     } catch (err) {
+      console.log('[DEBUG] Protected request failed. Error:', err.response?.status, err.response?.data || err.message);
+
       if (err.response?.status === 401 || err.response?.status === 403) {
-        console.log('Access token expired. Trying refresh...');
+        console.log('[DEBUG] Access token expired. Trying refresh flow...');
         try {
           const refreshRes = await axios.get('/tokens/refresh');
-          const newAccessToken = refreshRes.data.accessToken;
-          localStorage.setItem('accessToken', JSON.stringify(newAccessToken));
+          console.log('[DEBUG] Refresh response:', refreshRes.data);
 
-          console.log('Refreshed. Retrying protected request...');
-          // Retry original:
-          const retry = await axios.get('/protected', {
+          const newAccessToken = refreshRes.data.accessToken;
+          localStorage.setItem('token', JSON.stringify(newAccessToken));
+          console.log('[DEBUG] Stored new access token in localStorage:', newAccessToken);
+
+          console.log('[DEBUG] Retrying protected request with new token...');
+          const retry = await axios.get('/profile/person', {
             headers: {
               Authorization: `Bearer ${newAccessToken}`
             }
           });
+
+          console.log('[DEBUG] Retry successful. Response:', retry.data);
           setProtectedData(retry.data.message || JSON.stringify(retry.data));
         } catch (refreshErr) {
+          console.log('[DEBUG] Refresh attempt failed:', refreshErr.response?.data || refreshErr.message);
           setError('Refresh failed: ' + (refreshErr.response?.data?.error || refreshErr.message));
         }
       } else {

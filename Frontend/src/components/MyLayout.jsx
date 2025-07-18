@@ -1,5 +1,6 @@
 // ✅ NEW: Add these imports
 import React, { useState, useEffect } from 'react';
+import axios from 'axios';
 import {
   Box,
   Container,
@@ -63,6 +64,9 @@ export default function MyLayout({ user, onLogout }) {
   const [list2Open, setList2Open] = useState(false);
   const [list2SubOpen, setList2SubOpen] = useState(false);
 
+  const [protectedData, setProtectedData] = useState('');
+  const [error, setError] = useState('');
+
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
   };
@@ -90,15 +94,44 @@ export default function MyLayout({ user, onLogout }) {
       console.log('Using JWT token:', token);
 
       try {
-        const res = await axios.get('http://localhost:8080/protected/profile', {
+        console.log('[DEBUG] Sending protected request with token...');
+        const res = await axios.get('/profile/person', {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
+            Authorization: `Bearer ${token}`
+          }
         });
 
-        console.log('Protected data:', res.data);
+        console.log('[DEBUG] Protected request successful. Response:', res.data);
+        setProtectedData(res.data.message || JSON.stringify(res.data));
       } catch (err) {
-        console.error('Protected route error:', err.response?.data || err.message);
+        console.log('[DEBUG] Protected request failed. Error:', err.response?.status, err.response?.data || err.message);
+
+        if (err.response?.status === 401 || err.response?.status === 403) {
+          console.log('[DEBUG] Access token expired. Trying refresh flow...');
+          try {
+            const refreshRes = await axios.get('/tokens/refresh');
+            console.log('[DEBUG] Refresh response:', refreshRes.data);
+
+            const newAccessToken = refreshRes.data.accessToken;
+            localStorage.setItem('token', JSON.stringify(newAccessToken));
+            console.log('[DEBUG] Stored new access token in localStorage:', newAccessToken);
+
+            console.log('[DEBUG] Retrying protected request with new token...');
+            const retry = await axios.get('/profile/person', {
+              headers: {
+                Authorization: `Bearer ${newAccessToken}`
+              }
+            });
+
+            console.log('[DEBUG] Retry successful. Response:', retry.data);
+            setProtectedData(retry.data.message || JSON.stringify(retry.data));
+          } catch (refreshErr) {
+            console.log('[DEBUG] Refresh attempt failed:', refreshErr.response?.data || refreshErr.message);
+            setError('Refresh failed: ' + (refreshErr.response?.data?.error || refreshErr.message));
+          }
+        } else {
+          setError(err.response?.data?.error || err.message);
+        }
       }
     };
 

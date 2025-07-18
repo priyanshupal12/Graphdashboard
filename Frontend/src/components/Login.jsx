@@ -24,7 +24,7 @@ export default function Login({ onLogin }) {
       localStorage.setItem('currentUser', JSON.stringify(response.data.user));
 
       // ✅ Save JWT token too!
-      localStorage.setItem('token', response.data.token);
+      localStorage.setItem('token', response.data.accessToken);
 
       // ✅ Update parent
       onLogin(response.data.user);
