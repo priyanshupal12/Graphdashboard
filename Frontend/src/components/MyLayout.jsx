@@ -1,31 +1,11 @@
-// ✅ NEW: Add these imports
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import axios from 'axios';
+
 import {
-  Box,
-  Container,
-  Grid,
-  Card,
-  CardHeader,
-  CardContent,
-  Typography,
-  AppBar,
-  Toolbar,
-  IconButton,
-  TextField,
-  InputAdornment,
-  Drawer,
-  List,
-  ListItem,
-  ListItemButton,
-  ListSubheader,
-  ListItemIcon,
-  Collapse,
-  ListItemText,
-  LinearProgress,
-  Paper,
-  Badge,
-  Avatar
+  Box, Container, Grid, Card, CardHeader, CardContent, Typography,
+  AppBar, Toolbar, IconButton, TextField, InputAdornment, Drawer,
+  List, ListItem, ListItemButton, ListSubheader, ListItemIcon,
+  Collapse, ListItemText, LinearProgress, Paper, Badge, Avatar
 } from '@mui/material';
 
 import MenuIcon from '@mui/icons-material/Menu';
@@ -35,98 +15,64 @@ import ExpandMore from '@mui/icons-material/ExpandMore';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
 import StarBorder from '@mui/icons-material/StarBorder';
 import LogoutIcon from '@mui/icons-material/Logout';
-
-// ✅ NEW: Add a dark mode icon
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import NotificationsIcon from '@mui/icons-material/Notifications';
 
 import { green } from '@mui/material/colors';
 import { DataGrid } from '@mui/x-data-grid';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 
-// graph
 import { ResponsiveLine } from '@nivo/line';
 import { ResponsiveBar } from '@nivo/bar';
 import { ResponsivePie } from '@nivo/pie';
-
-
-// ✅ NEW: Import ThemeProvider and createTheme
-import { ThemeProvider, createTheme } from '@mui/material/styles';
 
 const drawerWidth = 250;
 
 export default function MyLayout({ user, onLogout }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-
   const [list1Open, setList1Open] = useState(true);
   const [list1SubOpen, setList1SubOpen] = useState(false);
-
   const [list2Open, setList2Open] = useState(false);
   const [list2SubOpen, setList2SubOpen] = useState(false);
-
   const [protectedData, setProtectedData] = useState('');
   const [error, setError] = useState('');
+  const [mode, setMode] = useState('light');
 
-  const toggleDrawer = () => {
-    setDrawerOpen(!drawerOpen);
-  };
+  const theme = createTheme({ palette: { mode } });
 
-  const toggleList1 = () => {
-    setList1Open(!list1Open);
-  };
+  const toggleDrawer = () => setDrawerOpen(!drawerOpen);
+  const toggleList1 = () => setList1Open(!list1Open);
+  const toggleList1Sub = () => setList1SubOpen(!list1SubOpen);
+  const toggleList2 = () => setList2Open(!list2Open);
+  const toggleList2Sub = () => setList2SubOpen(!list2SubOpen);
 
-  const toggleList1Sub = () => {
-    setList1SubOpen(!list1SubOpen);
-  };
-
-  const toggleList2 = () => {
-    setList2Open(!list2Open);
-  };
-
-  const toggleList2Sub = () => {
-    setList2SubOpen(!list2SubOpen);
-  };
-
-  // ✅ Call protected API when dashboard mounts
   useEffect(() => {
     const fetchProtectedData = async () => {
       const token = localStorage.getItem('token');
-      console.log('Using JWT token:', token);
+      console.log('[DEBUG] Sending protected request with token...');
 
       try {
-        console.log('[DEBUG] Sending protected request with token...');
         const res = await axios.get('/profile/person', {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
+          headers: { Authorization: `Bearer ${token}` }
         });
-
-        console.log('[DEBUG] Protected request successful. Response:', res.data);
         setProtectedData(res.data.message || JSON.stringify(res.data));
       } catch (err) {
-        console.log('[DEBUG] Protected request failed. Error:', err.response?.status, err.response?.data || err.message);
+        console.log('[DEBUG] Protected request failed:', err.response?.status, err.response?.data || err.message);
 
-        if (err.response?.status === 401 || err.response?.status === 403) {
-          console.log('[DEBUG] Access token expired. Trying refresh flow...');
+        if ([401, 403].includes(err.response?.status)) {
+          console.log('[DEBUG] Access token expired. Trying refresh...');
           try {
             const refreshRes = await axios.get('/tokens/refresh');
-            console.log('[DEBUG] Refresh response:', refreshRes.data);
-
             const newAccessToken = refreshRes.data.accessToken;
             localStorage.setItem('token', JSON.stringify(newAccessToken));
-            console.log('[DEBUG] Stored new access token in localStorage:', newAccessToken);
 
-            console.log('[DEBUG] Retrying protected request with new token...');
             const retry = await axios.get('/profile/person', {
-              headers: {
-                Authorization: `Bearer ${newAccessToken}`
-              }
+              headers: { Authorization: `Bearer ${newAccessToken}` }
             });
-
-            console.log('[DEBUG] Retry successful. Response:', retry.data);
             setProtectedData(retry.data.message || JSON.stringify(retry.data));
           } catch (refreshErr) {
-            console.log('[DEBUG] Refresh attempt failed:', refreshErr.response?.data || refreshErr.message);
+            console.log('[DEBUG] Refresh failed:', refreshErr.response?.data || refreshErr.message);
             setError('Refresh failed: ' + (refreshErr.response?.data?.error || refreshErr.message));
           }
         } else {
@@ -138,33 +84,18 @@ export default function MyLayout({ user, onLogout }) {
     fetchProtectedData();
   }, []);
 
-  // ✅ NEW: Add dark mode state
-  const [mode, setMode] = useState('light');
-
-  // ✅ NEW: Create the theme using mode
-  const theme = createTheme({
-    palette: {
-      mode: mode,
-    },
-  });
-
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
     { field: 'firstName', headerName: 'First name', width: 130 },
     { field: 'lastName', headerName: 'Last name', width: 130 },
-    {
-      field: 'age',
-      headerName: 'Age',
-      type: 'number',
-      width: 90,
-    },
+    { field: 'age', headerName: 'Age', type: 'number', width: 90 },
     {
       field: 'fullName',
       headerName: 'Full name',
-      description: 'This column has a value getter and is not sortable.',
+      description: 'Not sortable',
       sortable: false,
       width: 160,
-      valueGetter: (value, row) => `${row.firstName || ''} ${row.lastName || ''}`,
+      valueGetter: (_, row) => `${row.firstName || ''} ${row.lastName || ''}`,
     },
   ];
 
@@ -185,7 +116,7 @@ export default function MyLayout({ user, onLogout }) {
   const DrawerList = (
     <Box>
       <List>
-        {['Dashboard', 'Reports', 'Settings'].map((text) => (
+        {['Dashboard', 'Reports', 'Settings'].map(text => (
           <ListItem key={text}>
             <ListItemButton>
               <ListItemText primary={text} />
@@ -196,110 +127,63 @@ export default function MyLayout({ user, onLogout }) {
     </Box>
   );
 
-  function DataTable() {
-    return (
-      <Paper
-        sx={{
-          flex: 1,
-          display: 'flex',
-          flexDirection: 'column',
-          height: 400,
-          width: '100%',
-        }}
-      >
-        <DataGrid
-          rows={rows}
-          columns={columns}
-          initialState={{ pagination: { paginationModel } }}
-          pageSizeOptions={[5, 10]}
-          checkboxSelection
-          sx={{ border: 0, flex: 1 }}
-        />
-      </Paper>
-    );
-  }
+  const DataTable = () => (
+    <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', height: 400, width: '100%' }}>
+      <DataGrid
+        rows={rows}
+        columns={columns}
+        initialState={{ pagination: { paginationModel } }}
+        pageSizeOptions={[5, 10]}
+        checkboxSelection
+        sx={{ border: 0, flex: 1 }}
+      />
+    </Paper>
+  );
 
-  function NestedList({ open, onToggle, openSub, onSubToggle, header = "Inbox", showHeader = true }) {
-    return (
-      <List
-        sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}
-        component="nav"
-        aria-labelledby="nested-list-subheader"
-        subheader={
-          showHeader ? (
-            <ListSubheader component="div" id="nested-list-subheader">
-              Nested List Items
-            </ListSubheader>
-          ) : null
-        }
-      >
-        {/* Top-level toggle */}
-        <ListItemButton onClick={onToggle}>
-          <ListItemIcon>
-            <InboxIcon />
-          </ListItemIcon>
-          <ListItemText
-            primary={header}
-            sx={{
-              transition: 'transform 0.3s ease',
-              transform: open ? 'translateX(0)' : 'translateX(4px)',
-            }}
-          />
-          {open ? <ExpandLess /> : <ExpandMore />}
-        </ListItemButton>
-
-        {/* First Collapse */}
-        <Collapse in={open} timeout="auto" unmountOnExit>
-          <List component="div" disablePadding>
-            {['Starred 1', 'Starred 2'].map((text, index) => (
-              <ListItemButton key={index} sx={{ pl: 4 }}>
-                <ListItemIcon>
-                  <StarBorder />
-                </ListItemIcon>
-                <ListItemText primary={text} />
-              </ListItemButton>
-            ))}
-
-            {/* Sub-section toggle */}
-            <ListItemButton onClick={onSubToggle} sx={{ pl: 4 }}>
-              <ListItemIcon>
-                <StarBorder />
-              </ListItemIcon>
-              <ListItemText primary="Starred 3 (Expandable)" />
-              {openSub ? <ExpandLess /> : <ExpandMore />}
+  const NestedList = ({ open, onToggle, openSub, onSubToggle, header = "Inbox", showHeader = true }) => (
+    <List sx={{ width: '100%', maxWidth: 360, bgcolor: 'background.paper' }}>
+      {showHeader && (
+        <ListSubheader>Nested List Items</ListSubheader>
+      )}
+      <ListItemButton onClick={onToggle}>
+        <ListItemIcon><InboxIcon /></ListItemIcon>
+        <ListItemText primary={header} />
+        {open ? <ExpandLess /> : <ExpandMore />}
+      </ListItemButton>
+      <Collapse in={open} timeout="auto" unmountOnExit>
+        <List component="div" disablePadding>
+          {['Starred 1', 'Starred 2'].map(text => (
+            <ListItemButton key={text} sx={{ pl: 4 }}>
+              <ListItemIcon><StarBorder /></ListItemIcon>
+              <ListItemText primary={text} />
             </ListItemButton>
+          ))}
+          <ListItemButton onClick={onSubToggle} sx={{ pl: 4 }}>
+            <ListItemIcon><StarBorder /></ListItemIcon>
+            <ListItemText primary="Starred 3 (Expandable)" />
+            {openSub ? <ExpandLess /> : <ExpandMore />}
+          </ListItemButton>
+          <Collapse in={openSub} timeout="auto" unmountOnExit>
+            <List component="div" disablePadding>
+              {['Sub Item 1', 'Sub Item 2'].map(text => (
+                <ListItemButton key={text} sx={{ pl: 8 }}>
+                  <ListItemIcon><StarBorder /></ListItemIcon>
+                  <ListItemText primary={text} />
+                </ListItemButton>
+              ))}
+            </List>
+          </Collapse>
+        </List>
+      </Collapse>
+    </List>
+  );
 
-            {/* Nested Collapse */}
-            <Collapse in={openSub} timeout="auto" unmountOnExit>
-              <List component="div" disablePadding>
-                {['Sub Item 1', 'Sub Item 2'].map((text, index) => (
-                  <ListItemButton key={index} sx={{ pl: 8 }}>
-                    <ListItemIcon>
-                      <StarBorder />
-                    </ListItemIcon>
-                    <ListItemText primary={text} />
-                  </ListItemButton>
-                ))}
-              </List>
-            </Collapse>
-          </List>
-        </Collapse>
-      </List>
-    );
-  }
-
-  const areaGraphData = [
-    {
-      id: "area_trend",
-      data: [
-        { x: "Mon", y: 40 },
-        { x: "Tue", y: 42 },
-        { x: "Wed", y: 41 },
-        { x: "Thu", y: 43 },
-        { x: "Fri", y: 42 },
-      ],
-    },
-  ];
+  const areaGraphData = [{
+    id: "area_trend", data: [
+      { x: "Mon", y: 40 }, { x: "Tue", y: 42 }, { x: "Wed", y: 41 },
+      { x: "Thu", y: 43 }, { x: "Fri", y: 42 },
+    ]
+  }];
 
   const stackedBarData = [
     { day: "Mon", apples: 30, bananas: 20 },
@@ -318,9 +202,7 @@ export default function MyLayout({ user, onLogout }) {
 
   const totalUsers = pieData.reduce((acc, cur) => acc + cur.value, 0);
 
-
   return (
-    // ✅ NEW: Wrap entire content with ThemeProvider
     <ThemeProvider theme={theme}>
       <AppBar
         position="fixed"
@@ -665,3 +547,7 @@ export default function MyLayout({ user, onLogout }) {
     </ThemeProvider>
   );
 }
+
+
+
+
