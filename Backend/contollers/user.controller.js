@@ -29,7 +29,6 @@ const loginUser = async (req, res) => {
     if (!email || !password) {
         return res.status(400).json({ error: 'email and password are required.' });
     }
-    console.log(req.body)
 
     try {
         const sql = 'SELECT id, email, password FROM users WHERE email = ?';
@@ -62,7 +61,6 @@ const loginUser = async (req, res) => {
             message: 'User login successful',
             user: { id: user.id, email: user.email },
             accessToken,
-            refreshToken
         });
 
     } catch (err) {
