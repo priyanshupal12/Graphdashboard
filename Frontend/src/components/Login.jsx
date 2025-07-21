@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Box, Button, TextField, Typography, Paper } from '@mui/material';
 
@@ -14,27 +14,28 @@ export default function Login({ onLogin }) {
     setError('');
 
     try {
-      const response = await axios.post('http://localhost:8080/login/logsubmit', {
-        email,
-        password,
-      },
-        { withCredentials: true });
+      const response = await axios.post(
+        'http://localhost:8080/login/logsubmit',
+        { email, password },
+        { withCredentials: true } // ✅ to send cookies (refresh token)
+      );
 
-      // ✅ Save user
+      console.log(response.data)
+      // ✅ Save user details
       localStorage.setItem('currentUser', JSON.stringify(response.data.user));
 
-      // ✅ Save JWT token too!
+      // ✅ Save access token (JWT)
       localStorage.setItem('token', response.data.accessToken);
 
-      // ✅ Update parent
+      // ✅ Call parent to update auth state
       onLogin(response.data.user);
 
-      // ✅ Redirect to dashboard
+      // ✅ Go to dashboard
       navigate('/dashboard');
+
     } catch (err) {
-      console.error(err);
       console.error('Login error:', err);
-      if (err.response && err.response.data && err.response.data.error) {
+      if (err.response?.data?.error) {
         setError(err.response.data.error);
       } else {
         setError('Something went wrong. Please try again.');
@@ -42,7 +43,7 @@ export default function Login({ onLogin }) {
     }
   };
 
-  return (  // ✅ CORRECT: This is the component's return, outside handleLogin
+  return (
     <Box
       sx={{
         height: '100vh',
@@ -52,12 +53,10 @@ export default function Login({ onLogin }) {
       }}
     >
       <Paper sx={{ p: 4, width: 300 }}>
-        <Box display='flex'>
-          <Button variant="text">Login</Button>
-          <Button variant="text" onClick={() => navigate('/register')}>
-            Register
-          </Button>
-        </Box>
+        <Typography variant="h5" mb={2} textAlign="center">
+          Teacher / Principal Login
+        </Typography>
+
         <TextField
           fullWidth
           label="Email"
@@ -73,10 +72,19 @@ export default function Login({ onLogin }) {
           onChange={(e) => setPassword(e.target.value)}
           margin="normal"
         />
+
         {error && (
-          <Typography variant="body2" color="error" mt={1}>{error}</Typography>
+          <Typography variant="body2" color="error" mt={1}>
+            {error}
+          </Typography>
         )}
-        <Button fullWidth variant="contained" sx={{ mt: 2 }} onClick={handleLogin}>
+
+        <Button
+          fullWidth
+          variant="contained"
+          sx={{ mt: 2 }}
+          onClick={handleLogin}
+        >
           Login
         </Button>
       </Paper>
