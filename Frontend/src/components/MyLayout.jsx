@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import { Link } from 'react-router-dom'
+import AccountMenu from './AccountMenu';
 
 import {
   Box, Container, Grid, Card, CardHeader, CardContent, Typography,
@@ -14,10 +16,9 @@ import ExpandLess from '@mui/icons-material/ExpandLess';
 import ExpandMore from '@mui/icons-material/ExpandMore';
 import InboxIcon from '@mui/icons-material/MoveToInbox';
 import StarBorder from '@mui/icons-material/StarBorder';
-import LogoutIcon from '@mui/icons-material/Logout';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
-import NotificationsIcon from '@mui/icons-material/Notifications';
+
 
 import { green } from '@mui/material/colors';
 import { DataGrid } from '@mui/x-data-grid';
@@ -97,18 +98,19 @@ export default function MyLayout({ user, onLogout }) {
       width: 160,
       valueGetter: (_, row) => `${row.firstName || ''} ${row.lastName || ''}`,
     },
+    { field: 'class', headerName: 'Class', width: 90 },
   ];
 
   const rows = [
-    { id: 1, lastName: 'Snow', firstName: 'Jon', age: 35 },
-    { id: 2, lastName: 'Lannister', firstName: 'Cersei', age: 42 },
-    { id: 3, lastName: 'Lannister', firstName: 'Jaime', age: 45 },
-    { id: 4, lastName: 'Stark', firstName: 'Arya', age: 16 },
-    { id: 5, lastName: 'Targaryen', firstName: 'Daenerys', age: null },
-    { id: 6, lastName: 'Melisandre', firstName: null, age: 150 },
-    { id: 7, lastName: 'Clifford', firstName: 'Ferrara', age: 44 },
-    { id: 8, lastName: 'Frances', firstName: 'Rossini', age: 36 },
-    { id: 9, lastName: 'Roxie', firstName: 'Harvey', age: 65 },
+    { id: 1, lastName: 'Snow', firstName: 'Jon', age: 35, class: 'X', },
+    { id: 2, lastName: 'Lannister', firstName: 'Cersei', age: 42, class: 'X', },
+    { id: 3, lastName: 'Lannister', firstName: 'Jaime', age: 45, class: 'X', },
+    { id: 4, lastName: 'Stark', firstName: 'Arya', age: 16, class: 'X', },
+    { id: 5, lastName: 'Targaryen', firstName: 'Daenerys', age: 23, class: 'X', },
+    { id: 6, lastName: 'Melisandre', firstName: null, age: 150, class: 'X', },
+    { id: 7, lastName: 'Clifford', firstName: 'Ferrara', age: 44, class: 'X', },
+    { id: 8, lastName: 'Frances', firstName: 'Rossini', age: 36, class: 'X', },
+    { id: 9, lastName: 'Roxie', firstName: 'Harvey', age: 65, class: 'X', },
   ];
 
   const paginationModel = { page: 0, pageSize: 5 };
@@ -118,7 +120,7 @@ export default function MyLayout({ user, onLogout }) {
       <List>
         {['Dashboard', 'Reports', 'Settings'].map(text => (
           <ListItem key={text}>
-            <ListItemButton>
+            <ListItemButton component={Link} >
               <ListItemText primary={text} />
             </ListItemButton>
           </ListItem>
@@ -242,28 +244,30 @@ export default function MyLayout({ user, onLogout }) {
           </Box>
 
           {/* Right: Nav items + theme toggle */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
 
-            {/* Example: Notifications */}
+           
             <IconButton color="inherit">
               <Badge badgeContent={4} color="primary">
                 <NotificationsIcon />
               </Badge>
             </IconButton>
 
-            {/* Example: User avatar */}
+          
             <IconButton color="inherit">
               <Avatar alt="User" src="" sx={{ width: 32, height: 32 }} />
-            </IconButton>
+            </IconButton> */}
 
-            {/* Dark/light toggle */}
+          <Box display='flex'>
             <IconButton color="inherit" onClick={() => setMode(mode === 'light' ? 'dark' : 'light')}>
               {mode === 'light' ? <Brightness4Icon /> : <Brightness7Icon />}
             </IconButton>
 
-            <IconButton color="inherit" onClick={onLogout}>
+            {/*} <IconButton color="inherit" onClick={onLogout}>
               <LogoutIcon />
             </IconButton>
+          </Box> */}
+            <AccountMenu onLogout={onLogout} />
           </Box>
         </Toolbar>
       </AppBar>

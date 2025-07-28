@@ -53,7 +53,7 @@ app.use('/classes/:className', studentAvg);
 app.use('/students', Indvistudent);
 app.use('/marks', markesRouter);
 app.use('/activity-scores', activityRouter);
-app.use('school', schoolRouter);
+app.use('/school', schoolRouter);
 
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+// import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { Box, Button, TextField, Typography, Paper } from '@mui/material';
 
@@ -8,7 +8,7 @@ export default function Login({ onLogin }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const handleLogin = async () => {
     setError('');
@@ -31,7 +31,7 @@ export default function Login({ onLogin }) {
       onLogin(response.data.user);
 
       // ✅ Go to dashboard
-      navigate('/dashboard');
+      // navigate('/dashboard');
 
     } catch (err) {
       console.error('Login error:', err);
