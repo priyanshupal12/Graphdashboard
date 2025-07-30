@@ -1,13 +1,15 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
+import api from '../Api/api';
 import { Link } from 'react-router-dom'
 import AccountMenu from './AccountMenu';
+// import ClassSectionSelector from './ClassSectionSelector';
 
 import {
   Box, Container, Grid, Card, CardHeader, CardContent, Typography,
   AppBar, Toolbar, IconButton, TextField, InputAdornment, Drawer,
   List, ListItem, ListItemButton, ListSubheader, ListItemIcon,
-  Collapse, ListItemText, LinearProgress, Paper, Badge, Avatar
+  Collapse, ListItemText, LinearProgress, Paper, Badge, Avatar, 
+  FormControl, InputLabel, Select, MenuItem
 } from '@mui/material';
 
 import MenuIcon from '@mui/icons-material/Menu';
@@ -39,6 +41,9 @@ export default function MyLayout({ user, onLogout }) {
   const [protectedData, setProtectedData] = useState('');
   const [error, setError] = useState('');
   const [mode, setMode] = useState('light');
+  const [selectedClass, setSelectedClass] = useState('10');
+  const [selectedSection, setSelectedSection] = useState('A');
+  const [students, setStudents] = useState([]);
 
   const theme = createTheme({ palette: { mode } });
 
@@ -50,28 +55,30 @@ export default function MyLayout({ user, onLogout }) {
 
   useEffect(() => {
     const fetchProtectedData = async () => {
-      const token = localStorage.getItem('token');
-      console.log('[DEBUG] Sending protected request with token...');
+      const className = `${selectedClass}${selectedSection}`;
+      // console.log(className)
+      // const token = localStorage.getItem('token');
+      // console.log('[DEBUG] Sending protected request with token...');
 
       try {
-        const res = await axios.get('/profile/person', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        setProtectedData(res.data.message || JSON.stringify(res.data));
+        const res = await api.get(`/classes/${className}/students`);
+        const studentsData = Array.isArray(res.data) ? res.data : [];
+        setStudents(studentsData);
+        console.log("before access expired", studentsData)
       } catch (err) {
         console.log('[DEBUG] Protected request failed:', err.response?.status, err.response?.data || err.message);
 
         if ([401, 403].includes(err.response?.status)) {
           console.log('[DEBUG] Access token expired. Trying refresh...');
           try {
-            const refreshRes = await axios.get('/tokens/refresh');
+            const refreshRes = await api.get('/tokens/refresh');
             const newAccessToken = refreshRes.data.accessToken;
-            localStorage.setItem('token', JSON.stringify(newAccessToken));
+            localStorage.setItem('token', newAccessToken);
 
-            const retry = await axios.get('/profile/person', {
-              headers: { Authorization: `Bearer ${newAccessToken}` }
-            });
-            setProtectedData(retry.data.message || JSON.stringify(retry.data));
+            const retry = await api.get(`/classes/${className}/students`);
+            const retrystudentsData = Array.isArray(retry.data.message) ? retry.data.message : [];
+            console.log("After access expired", retry.data)
+            setStudents(retrystudentsData);
           } catch (refreshErr) {
             console.log('[DEBUG] Refresh failed:', refreshErr.response?.data || refreshErr.message);
             setError('Refresh failed: ' + (refreshErr.response?.data?.error || refreshErr.message));
@@ -83,34 +90,14 @@ export default function MyLayout({ user, onLogout }) {
     };
 
     fetchProtectedData();
-  }, []);
+  }, [selectedClass, selectedSection]);
 
   const columns = [
     { field: 'id', headerName: 'ID', width: 70 },
-    { field: 'firstName', headerName: 'First name', width: 130 },
-    { field: 'lastName', headerName: 'Last name', width: 130 },
-    { field: 'age', headerName: 'Age', type: 'number', width: 90 },
-    {
-      field: 'fullName',
-      headerName: 'Full name',
-      description: 'Not sortable',
-      sortable: false,
-      width: 160,
-      valueGetter: (_, row) => `${row.firstName || ''} ${row.lastName || ''}`,
-    },
-    { field: 'class', headerName: 'Class', width: 90 },
-  ];
-
-  const rows = [
-    { id: 1, lastName: 'Snow', firstName: 'Jon', age: 35, class: 'X', },
-    { id: 2, lastName: 'Lannister', firstName: 'Cersei', age: 42, class: 'X', },
-    { id: 3, lastName: 'Lannister', firstName: 'Jaime', age: 45, class: 'X', },
-    { id: 4, lastName: 'Stark', firstName: 'Arya', age: 16, class: 'X', },
-    { id: 5, lastName: 'Targaryen', firstName: 'Daenerys', age: 23, class: 'X', },
-    { id: 6, lastName: 'Melisandre', firstName: null, age: 150, class: 'X', },
-    { id: 7, lastName: 'Clifford', firstName: 'Ferrara', age: 44, class: 'X', },
-    { id: 8, lastName: 'Frances', firstName: 'Rossini', age: 36, class: 'X', },
-    { id: 9, lastName: 'Roxie', firstName: 'Harvey', age: 65, class: 'X', },
+    { field: 'name', headerName: 'Name', width: 130 },
+    { field: 'roll_number', headerName: 'Roll No', width: 130 },
+    { field: 'class', headerName: 'Class', type: 'String', width: 90 },
+    // { field: 'class', headerName: 'Class', width: 90 },
   ];
 
   const paginationModel = { page: 0, pageSize: 5 };
@@ -132,7 +119,7 @@ export default function MyLayout({ user, onLogout }) {
   const DataTable = () => (
     <Paper sx={{ flex: 1, display: 'flex', flexDirection: 'column', height: 400, width: '100%' }}>
       <DataGrid
-        rows={rows}
+        rows={students}
         columns={columns}
         initialState={{ pagination: { paginationModel } }}
         pageSizeOptions={[5, 10]}
@@ -227,20 +214,45 @@ export default function MyLayout({ user, onLogout }) {
           </Box>
 
           {/* Middle: Search */}
-          <Box sx={{ flex: 1, mx: 4, maxWidth: 400 }}>
-            <TextField
-              fullWidth
-              size="small"
-              variant="outlined"
-              placeholder="Search..."
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start">
-                    <SearchIcon />
-                  </InputAdornment>
-                ),
-              }}
-            />
+          <Box sx={{ flex: 1, mx: 4, maxWidth: 500 }}>
+            <Box display='flex' alignItems="center">
+              <TextField
+                fullWidth
+                size="small"
+                variant="outlined"
+                placeholder="Search..."
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start">
+                      <SearchIcon />
+                    </InputAdornment>
+                  ),
+                }}
+              />
+              {/* //dropdown start */}
+              <Box>
+                <Box display="flex" gap={2} alignItems="center" mb={2}>
+                  <FormControl>
+                    {/* <InputLabel>Class</InputLabel> */}
+                    <Select value={selectedClass} onChange={(e) => setSelectedClass(e.target.value)} label="Class" sx={{ width: 50, height: 40, mt: 2 }}>
+                      {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((cls) => (
+                        <MenuItem key={cls} value={cls}>{cls}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+
+                  <FormControl>
+                    {/* <InputLabel>Section</InputLabel> */}
+                    <Select value={selectedSection} onChange={(e) => setSelectedSection(e.target.value)} label="Section" sx={{ width: 50, height: 40, mt: 2 }}>
+                      {['A', 'B'].map((sec) => (
+                        <MenuItem key={sec} value={sec}>{sec}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              </Box>
+              {/* //dropdown end */}
+            </Box>
           </Box>
 
           {/* Right: Nav items + theme toggle */}

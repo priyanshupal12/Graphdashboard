@@ -1,8 +1,5 @@
 import { useState } from 'react';
-import axios from 'axios';
-
-axios.defaults.baseURL = 'http://localhost:8080';
-axios.defaults.withCredentials = true; // Needed for secure cookie refresh
+import api from '../Api/api';
 
 export default function ProtectedTest() {
   const [protectedData, setProtectedData] = useState('');
@@ -21,11 +18,7 @@ export default function ProtectedTest() {
 
     try {
       console.log('[DEBUG] Sending protected request with token...');
-      const res = await axios.get('/profile/person', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
+      const res = await api.get('/profile/person');
 
       console.log('[DEBUG] Protected request successful. Response:', res.data);
       setProtectedData(res.data.message || JSON.stringify(res.data));
@@ -35,7 +28,7 @@ export default function ProtectedTest() {
       if (err.response?.status === 401 || err.response?.status === 403) {
         console.log('[DEBUG] Access token expired. Trying refresh flow...');
         try {
-          const refreshRes = await axios.get('/tokens/refresh');
+          const refreshRes = await api.get('/tokens/refresh');
           console.log('[DEBUG] Refresh response:', refreshRes.data);
 
           const newAccessToken = refreshRes.data.accessToken;
@@ -43,11 +36,7 @@ export default function ProtectedTest() {
           console.log('[DEBUG] Stored new access token in localStorage:', newAccessToken);
 
           console.log('[DEBUG] Retrying protected request with new token...');
-          const retry = await axios.get('/profile/person', {
-            headers: {
-              Authorization: `Bearer ${newAccessToken}`
-            }
-          });
+          const retry = await api.get('/profile/person');
 
           console.log('[DEBUG] Retry successful. Response:', retry.data);
           setProtectedData(retry.data.message || JSON.stringify(retry.data));

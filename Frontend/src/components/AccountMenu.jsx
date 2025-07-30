@@ -19,7 +19,7 @@ import NotificationsIcon from '@mui/icons-material/Notifications';
 export default function AccountMenu({onLogout}) {
   const [anchorEl, setAnchorEl] = useState(null);
   // const [mode, setMode] = useState('light');
-  console.log("onLogout received in AccountMenu:", typeof onLogout);
+  // console.log("onLogout received in AccountMenu:", typeof onLogout);
 
   const open = Boolean(anchorEl);
   const handleClick = (event) => {

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 // import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import api from '../Api/api'
 import { Box, Button, TextField, Typography, Paper } from '@mui/material';
 
 export default function Login({ onLogin }) {
@@ -14,11 +14,10 @@ export default function Login({ onLogin }) {
     setError('');
 
     try {
-      const response = await axios.post(
-        'http://localhost:8080/login/logsubmit',
-        { email, password },
-        { withCredentials: true } // ✅ to send cookies (refresh token)
-      );
+      const response = await api.post('/login/logsubmit', {
+        email,
+        password
+      });
 
       console.log(response.data)
       // ✅ Save user details

@@ -38,10 +38,6 @@ export default function App() {
           path="/dashboard"
           element={currentUser ? <MyLayout user={currentUser} onLogout={handleLogout} /> : <Navigate to="/login" />}
         />
-        <Route
-          path="/student/:id"
-          element={currentUser ? <StudentDetails /> : <Navigate to="/login" />}
-        />
       </Routes>
     </Router>
   );
