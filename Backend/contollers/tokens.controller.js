@@ -9,9 +9,7 @@ export function refreshToken(req, res) {
 
     jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, decoded) => {
         if (err) return res.status(403).json({ error: 'Invalid refresh token' });
-
         const accessToken = generateAccessToken({ id: decoded.id, email: decoded.email, role: decoded.role });
-
         res.json({ accessToken });
     });
 }
