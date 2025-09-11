@@ -26,7 +26,6 @@ import { generateAccessToken, generateRefreshToken } from '../utils/tokens.js';
 
 const loginUser = async (req, res) => {
     const { email, password } = req.body;
-    console.log('entered into login')
     if (!email || !password) {
         return res.status(400).json({ error: 'email and password are required.' });
     }
@@ -40,9 +39,8 @@ const loginUser = async (req, res) => {
         }
 
         const user = result[0];
-        const hashedpass = await bcrypt.hash(user.password, 10)
 
-        const match = await bcrypt.compare(password, hashedpass); 
+        const match = await bcrypt.compare(password, user.password);
 
         if (!match) {
             return res.status(400).json({ error: 'Invalid password' });

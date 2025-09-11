@@ -2,18 +2,34 @@ import dotenv from "dotenv";
 import express from 'express';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
+import compression from 'compression';
 import userrouter from "./routes/auth.js";
 import tokenrouter from "./routes/tokens.js";
 import studentAvg from "./routes/studentsAvg.js";
 import Indvistudent from "./routes/students.js";
 import markesRouter from "./routes/marks.js";
 import activityRouter from "./routes/activity.js";
-import schoolRouter from "./routes/school.js"
+import schoolRouter from "./routes/school.js";
+import { errorHandler } from './middleware/errorHandler.js';
 
 dotenv.config({ path: "./.env" });
 
 const app = express();
 const port = process.env.PORT || 8000;
+
+// Security middleware
+app.use(helmet());
+
+// Rate limiting middleware
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+app.use(limiter);
 
 // ✅ Dynamic CORS config with console.log
 const allowedOrigins = [
@@ -44,6 +60,7 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+app.use(compression());
 app.use(express.json());
 app.use(cookieParser());
 
@@ -54,6 +71,9 @@ app.use('/students', Indvistudent);
 app.use('/marks', markesRouter);
 app.use('/activity-scores', activityRouter);
 app.use('/school', schoolRouter);
+
+// Global error handler middleware
+app.use(errorHandler);
 
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
