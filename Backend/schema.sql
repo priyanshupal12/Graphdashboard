@@ -75,3 +75,33 @@ CREATE TABLE activity_scores (
   INDEX idx_activity_scores_student_activity (student_id, activity_id),
   INDEX idx_activity_scores_date (date)
 );
+
+
+
+
+-- INSERT INTO subjects (name) VALUES
+-- ('Mathematics'), ('English'), ('Science');
+-- INSERT INTO activities (name) VALUES
+-- ('Sports'), ('Science Practical');
+-- INSERT INTO students (name, class, roll_number) VALUES
+-- ('Alice Johnson', '10A', 'R001'),
+-- ('Bob Smith', '10A', 'R002'),
+-- ('Charlie Brown', '10B', 'R003');
+-- INSERT INTO users (name, email, password, role, subject_id)
+-- VALUES
+-- ('Mr. Math', 'math@example.com', 'hashed_password_here', 'teacher', 1),
+-- ('Ms. English', 'english@example.com', 'hashed_password_here', 'teacher', 2);
+-- INSERT INTO users (name, email, password, role, activity_id)
+-- VALUES
+-- ('Coach Sports', 'sports@example.com', 'hashed_password_here', 'teacher', 1);
+-- INSERT INTO users (name, email, password, role)
+-- VALUES
+-- ('Principal Jones', 'principal@example.com', 'hashed_password_here', 'principal');
+-- INSERT INTO marks (student_id, subject_id, score, test_date) VALUES
+-- (1, 1, 88, '2024-07-01'),
+-- (1, 2, 75, '2024-07-01'),
+-- (2, 1, 92, '2024-07-01');
+-- INSERT INTO activity_scores (student_id, activity_id, score, date) VALUES
+-- (1, 1, 85, '2024-07-02'),
+-- (2, 1, 95, '2024-07-02'),
+-- (3, 2, 78, '2024-07-02');
